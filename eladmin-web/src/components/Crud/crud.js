@@ -161,8 +161,22 @@ function CRUD(options) {
         return
       }
       crud.status.add = CRUD.STATUS.PREPARED
+
       callVmHook(crud, CRUD.HOOK.afterToAdd, crud.form)
+
       callVmHook(crud, CRUD.HOOK.afterToCU, crud.form)
+    },
+    toAdd2: function() {
+      if (!(callVmHook(crud, CRUD.HOOK.beforeToAdd, crud.form) && callVmHook(crud, CRUD.HOOK.beforeToCU, crud.form))) {
+        return
+      }
+
+      crud.status.add = CRUD.STATUS.PREPARED
+
+      callVmHook(crud, CRUD.HOOK.afterToAdd, crud.form)
+
+      callVmHook(crud, CRUD.HOOK.afterToCU, crud.form)
+      crud.submitCU()
     },
     /**
      * 启动编辑
@@ -234,6 +248,7 @@ function CRUD(options) {
       if (!callVmHook(crud, CRUD.HOOK.beforeValidateCU)) {
         return
       }
+
       crud.findVM('form').$refs['form'].validate(valid => {
         if (!valid) {
           return
@@ -267,6 +282,28 @@ function CRUD(options) {
         callVmHook(crud, CRUD.HOOK.afterAddError)
       })
     },
+    /**
+     * 执行审核
+     * 审核通过
+     */
+    CheckCu() {
+      if (!callVmHook(crud, CRUD.HOOK.beforeSubmit)) {
+        return
+      }
+      crud.status.edit = CRUD.STATUS.PROCESSING
+      crud.crudMethod.edit(crud.form).then(() => {
+        crud.status.edit = CRUD.STATUS.NORMAL
+        crud.getDataStatus(crud.getDataId(crud.form)).edit = CRUD.STATUS.NORMAL
+        crud.editSuccessNotify()
+        crud.resetForm()
+        callVmHook(crud, CRUD.HOOK.afterSubmit)
+        crud.refresh()
+      }).catch(() => {
+        crud.status.edit = CRUD.STATUS.PREPARED
+        callVmHook(crud, CRUD.HOOK.afterEditError)
+      })
+    },
+
     /**
      * 执行编辑
      */
@@ -768,7 +805,9 @@ function crud(options = {}) {
   const defaultOptions = {
     type: undefined
   }
+
   options = mergeOptions(defaultOptions, options)
+
   return {
     data() {
       return {

@@ -13,6 +13,8 @@ spring:
       repositories:
         enabled: false
 
+
+
   #配置 Jpa
   jpa:
     properties:

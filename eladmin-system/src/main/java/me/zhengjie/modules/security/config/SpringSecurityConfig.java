@@ -18,7 +18,10 @@ package me.zhengjie.modules.security.config;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.annotation.AnonymousAccess;
 import me.zhengjie.modules.security.config.bean.SecurityProperties;
-import me.zhengjie.modules.security.security.*;
+import me.zhengjie.modules.security.security.JwtAccessDeniedHandler;
+import me.zhengjie.modules.security.security.JwtAuthenticationEntryPoint;
+import me.zhengjie.modules.security.security.TokenConfigurer;
+import me.zhengjie.modules.security.security.TokenProvider;
 import me.zhengjie.modules.security.service.OnlineUserService;
 import me.zhengjie.modules.security.service.UserCacheClean;
 import me.zhengjie.utils.enums.RequestMethodEnum;
@@ -40,6 +43,7 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
 import java.util.*;
 
 /**
@@ -65,7 +69,6 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
         // 去除 ROLE_ 前缀
         return new GrantedAuthorityDefaults("");
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         // 密码加密方式
@@ -75,6 +78,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         // 搜寻匿名标记 url： @AnonymousAccess
+
         RequestMappingHandlerMapping requestMappingHandlerMapping = (RequestMappingHandlerMapping) applicationContext.getBean("requestMappingHandlerMapping");
         Map<RequestMappingInfo, HandlerMethod> handlerMethodMap = requestMappingHandlerMapping.getHandlerMethods();
         // 获取匿名标记
@@ -82,6 +86,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity
                 // 禁用 CSRF
                 .csrf().disable()
+
                 .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
                 // 授权异常
                 .exceptionHandling()

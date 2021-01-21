@@ -34,9 +34,12 @@
       <!--表单组件-->
       <el-dialog :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
         <el-form ref="form" :model="form" <#if isNotNullColumns??>:rules="rules"</#if> size="small" label-width="80px">
+
     <#if columns??>
+
       <#list columns as column>
         <#if column.formShow>
+          <el-col :span="12">
           <el-form-item label="<#if column.remark != ''>${column.remark}<#else>${column.changeColumnName}</#if>"<#if column.istNotNull> prop="${column.changeColumnName}"</#if>>
             <#if column.formType = 'Input'>
             <el-input v-model="form.${column.changeColumnName}" style="width: 370px;" />
@@ -64,6 +67,7 @@
             <el-date-picker v-model="form.${column.changeColumnName}" type="datetime" style="width: 370px;" />
             </#if>
           </el-form-item>
+          </el-col>
         </#if>
       </#list>
     </#if>

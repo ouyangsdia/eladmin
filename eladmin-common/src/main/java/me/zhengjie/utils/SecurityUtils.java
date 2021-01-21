@@ -21,11 +21,16 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import me.zhengjie.exception.BadRequestException;
 import me.zhengjie.utils.enums.DataScopeEnum;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,7 +40,54 @@ import java.util.List;
  */
 @Slf4j
 public class SecurityUtils {
+    @Autowired
+    private static UserDetailsService userDetailsService;
 
+    public static void logInAs(String username) {
+
+        UserDetails user = userDetailsService.loadUserByUsername(username);
+        if (user == null) {
+            throw new IllegalStateException("User " + username + " doesn't exist, please provide a valid user");
+        }
+
+        SecurityContextHolder.setContext(new SecurityContextImpl(new Authentication() {
+            @Override
+            public Collection<? extends GrantedAuthority> getAuthorities() {
+                return user.getAuthorities();
+            }
+
+            @Override
+            public Object getCredentials() {
+                return user.getPassword();
+            }
+
+            @Override
+            public Object getDetails() {
+                return user;
+            }
+
+            @Override
+            public Object getPrincipal() {
+                return user;
+            }
+
+            @Override
+            public boolean isAuthenticated() {
+                return true;
+            }
+
+            @Override
+            public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+
+            }
+
+            @Override
+            public String getName() {
+                return user.getUsername();
+            }
+        }));
+        org.activiti.engine.impl.identity.Authentication.setAuthenticatedUserId(username);
+    }
     /**
      * 获取当前登录的用户
      * @return UserDetails
